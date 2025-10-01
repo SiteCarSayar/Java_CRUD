@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import java.io.IOException;
 import java.util.List;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -47,6 +48,18 @@ public class StudentController {
 		}
 	}
 
+	@GetMapping("/{id}/file")
+	public ResponseEntity<byte[]> getStudentFile(@PathVariable Long id) {
+		Student student = studentService.getByID(id);
+		if (student == null || student.getFileData() == null) {
+			return ResponseEntity.notFound().build();
+		}
+
+		return ResponseEntity.ok().contentType(MediaType.parseMediaType(student.getFileType()))
+				.header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + student.getFileName() + "\"")
+				.body(student.getFileData());
+	}
+
 	@PostMapping("/create")
 	public ResponseEntity<Student> save(@RequestBody Student student) {
 		Student saved = studentService.saveStudent(student);
@@ -61,7 +74,6 @@ public class StudentController {
 		// set file name (string)
 		student.setFileName(file.getOriginalFilename());
 		student.setFileType(file.getContentType());
-		// set file data (bytes)
 		student.setFileData(file.getBytes());
 
 		// save to DB
@@ -70,14 +82,19 @@ public class StudentController {
 		return ResponseEntity.ok(savedStudent);
 	}
 
-	@PutMapping("/update/{id}")
-	public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Student student) {
+	@PutMapping(value = "/update/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<?> update(@PathVariable Long id, @RequestPart Student student,
+			@RequestPart(value="file", required = false) MultipartFile file) {
+
 		try {
-			Student updated = studentService.updateStudent(student, id);
-			return ResponseEntity.ok(updated);
+			Student updatedStudent = studentService.updateStudent(student, id, file);
+			return ResponseEntity.ok(updatedStudent);
+			
 		} catch (RuntimeException e) {
+			
 			return ResponseEntity.status(404).body(e.getMessage());
-		}
+			}
+
 	}
 
 	@DeleteMapping("/delete/{id}")

@@ -32,14 +32,14 @@ public class Student implements Serializable {
 	private static final long serialVersionUID = 3408891154767810940L;
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "student_ID", nullable = false)
 	private long studentID;
 
 	@Column(name = "student_name", length = 100, nullable = false)
 	private String studentName;
 
-	@Column(name = "father_name", length = 100, nullable = false)
+	@Column(name = "father_name", length = 100)
 	private String fatherName;
 
 	private LocalDate dateOfBirth;
@@ -47,7 +47,7 @@ public class Student implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private Gender gender;
 
-	@Column(name = "nrc_no", length = 100, nullable = false)
+	@Column(name = "nrc_no", length = 100, nullable = false,unique = true)
 	private String nrcNo;
 
 	@Enumerated(EnumType.STRING)
