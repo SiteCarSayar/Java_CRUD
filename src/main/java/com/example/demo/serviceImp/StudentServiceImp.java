@@ -1,6 +1,7 @@
 package com.example.demo.serviceImp;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,8 +23,10 @@ public class StudentServiceImp implements StudentService {
 
 	private final StudentRepository studentRepository;
 
+
 	public StudentServiceImp(StudentRepository studentRepository) {
 		this.studentRepository = studentRepository;
+		
 	}
 
 	@Override
@@ -44,10 +47,16 @@ public class StudentServiceImp implements StudentService {
 	public Student saveStudent(Student st) {
 		// TODO Auto-generated method stub
 
-		if (studentRepository.existsById(st.getStudentID())) {
-			throw new IllegalArgumentException("Student with this id exist");
-		}
-		return studentRepository.save(st);
+	    // ✅ Allow new student without ID
+	    if (st.getStudentID() == null || st.getStudentID() == 0) {
+	        st.setStudentID(null); // Let DB auto-generate ID
+	    } 
+	    // ✅ If ID is provided, check if it already exists
+	    else if (studentRepository.existsById(st.getStudentID())) {
+	        throw new IllegalArgumentException("Student with this ID already exists");
+	    }
+
+	    return studentRepository.save(st);
 	}
 
 	@Override
@@ -87,8 +96,11 @@ public class StudentServiceImp implements StudentService {
 	@Override
 	public PageResponse<Student> getStudentsWithOffset(int offset, int limit) {
 		// TODO Auto-generated method stub
+		// offset =0,limit =10 page 0,
+		// offset =10,limit =10 page 1
 		int pageNumber = offset / limit;
-		Pageable pageable = PageRequest.of(pageNumber, limit ,Sort.by("studentID").descending());
+
+		Pageable pageable = PageRequest.of(pageNumber, limit, Sort.by("studentID").descending());
 		Page<Student> studentPage = studentRepository.findAll(pageable);
 
 		return new PageResponse<>(studentPage.getContent(), studentPage.getTotalElements());
@@ -101,14 +113,37 @@ public class StudentServiceImp implements StudentService {
 	}
 
 	@Override
-	public boolean checkEmailExists(String email) {
+	public List<Student> searchByGender(String keyword) {
 		// TODO Auto-generated method stub
-		return studentRepository.existsByEmail(email);
+		return studentRepository.findByGender(keyword);
 	}
 
 	@Override
-	public boolean checkNrcNoExists(String nrcNo) {
+	public Optional<Student> checkEmailExists(String email) {
 		// TODO Auto-generated method stub
-		return studentRepository.existsByNrcNo(nrcNo);
+		return studentRepository.findByEmail(email);
 	}
+
+	@Override
+	public Optional<Student> checkNrcNoExists(String nrcNo) {
+		// TODO Auto-generated method stub
+		return studentRepository.findByNrcNo(nrcNo);
+	}
+
+	@Override
+	public void setDefaultValue(Student student) {
+		if (student.getFatherName() == null || student.getFatherName().isBlank()) {
+			student.setFatherName("N/A");
+		}
+		if (student.getNationality() == null || student.getNationality().isBlank()) {
+			student.setNationality("N/A");
+		}
+		if (student.getPhoneNumber() == null || student.getPhoneNumber().isBlank()) {
+			student.setPhoneNumber("N/A"); // ← here is the fix
+		}
+		if (student.getAddress() == null || student.getAddress().isBlank()) {
+			student.setAddress("N/A");
+		}
+	}
+
 }

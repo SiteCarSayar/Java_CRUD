@@ -1,11 +1,13 @@
 package com.example.demo.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.common.PageResponse;
 import com.example.demo.entity.Student;
+
 
 public interface StudentService {
 
@@ -20,9 +22,14 @@ public interface StudentService {
 	
 	//search student by name or studentId
 	 public List<Student> searchStudents(String keyword);
+	 
+	 // search by Gender
+	 public List<Student> searchByGender(String keyword);
 	
 	 // Check if email exists
-	 public boolean checkEmailExists(String email);
+	 public Optional<Student> checkEmailExists(String email);
 	 // Check if NRC number exists
-	 public boolean checkNrcNoExists(String nrcNo);
+	 public Optional<Student> checkNrcNoExists(String nrcNo);
+
+	 public void setDefaultValue(Student student);
 }
